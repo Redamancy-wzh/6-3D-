@@ -1,0 +1,5 @@
+{
+  "name": "RoboSim 6-DOF",
+  "description": "A 3D simulation platform for a 6-DOF robotic arm based on DH parameters, featuring forward/inverse kinematics, trajectory visualization, and interactive controls.",
+  "requestFramePermissions": []
+}
