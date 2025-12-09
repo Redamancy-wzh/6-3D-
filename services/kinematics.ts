@@ -13,7 +13,7 @@ export class KinematicsService {
   public d = [0, 563, -180, 180, 160, 0, 0];
   public a = [0, 220, 900, 0, 1013.5, 200, 0];
   public alpha = [0, 0, 0, 0, 0, 0, 0]; 
-  public jointOffsets = [-90, 0, 90, 0, 0, 45, 0];
+  public jointOffsets = [0, 0, 90, 0, 0, 45, 0];
 
   constructor() {}
 
@@ -41,10 +41,11 @@ export class KinematicsService {
     const m = new Matrix4();
     const translation = new Matrix4().makeTranslation(pose.x, pose.y, pose.z);
     
-    // Euler Z-Y-X Convention (KUKA/Standard Industrial)
+    // Euler Z-Y-Z Convention
+    // As explicitly requested: Rotation A around Z, Rotation B around Y, Rotation C around Z
     const rotA = new Matrix4().makeRotationZ(this.getRad(pose.a));
     const rotB = new Matrix4().makeRotationY(this.getRad(pose.b));
-    const rotC = new Matrix4().makeRotationX(this.getRad(pose.c));
+    const rotC = new Matrix4().makeRotationZ(this.getRad(pose.c)); 
     
     const rotation = rotA.multiply(rotB).multiply(rotC);
     m.multiply(translation).multiply(rotation);
@@ -184,11 +185,11 @@ export class KinematicsService {
     const s = new Vector3();
     targetMatrix.decompose(targetPos, targetQuat, s);
 
-    // Improved accuracy settings
-    const maxIterations = 200; // Increased from 50
+    // High Iteration Count for Offline Trajectory Solving
+    const maxIterations = 1500; 
     const learningRate = 0.5; 
-    const posThreshold = 0.1; // Reduced from 1.0mm to 0.1mm
-    const rotThreshold = 0.001; // Reduced from 0.01rad to 0.001rad
+    const posThreshold = 0.05; // Strict position threshold (0.05mm)
+    const rotThreshold = 0.0005; // Strict rotation threshold
 
     for (let iter = 0; iter < maxIterations; iter++) {
       // 1. Forward Kinematics
@@ -230,7 +231,7 @@ export class KinematicsService {
         const J_v = new Vector3().crossVectors(jointAxis, p_e);
         const J_w = jointAxis.clone();
 
-        // Higher weight on Position to ensure path following
+        // Balanced weights for trajectory following
         const contribution = J_v.dot(errPos) + J_w.dot(errRot) * 100; 
 
         newAngles[j] += contribution * learningRate * 0.00005;

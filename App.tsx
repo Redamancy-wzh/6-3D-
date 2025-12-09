@@ -161,7 +161,9 @@ const App: React.FC = () => {
             const solutions: number[][] = [];
             let currentSeed = [...jointAngles];
 
-            const step = points.length > 1000 ? Math.floor(points.length / 500) : 1;
+            // Changed from dynamic step to 1 to ensure every point is solved and played back
+            // This prevents "messy" motion by strictly adhering to the file trajectory
+            const step = 1;
 
             for (let i = 0; i < points.length; i+=step) {
                 const pt = points[i];
